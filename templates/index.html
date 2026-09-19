@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Smart AI Resume Analyzer</title>
+
+    <style>
+        /* =====================================================
+           ROOT
+        ===================================================== */
+
+        :root {
+
+            --text: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --muted: #94a3b8;
+
+            --primary: #60a5fa;
+            --primary-dark: #2563eb;
+
+            --border: rgba(148, 163, 184, 0.22);
+
+            --card: rgba(15, 23, 42, 0.82);
+        }
+
+
+        /* =====================================================
+           RESET
+        ===================================================== */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        html,
+        body {
+            min-height: 100%;
+        }
+
+
+        body {
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif;
+
+            color: var(--text);
+
+            background:
+                linear-gradient(135deg,
+                    #071a3d,
+                    #102f63,
+                    #24145c,
+                    #090d2b);
+
+            overflow-x: hidden;
+
+            -webkit-font-smoothing: antialiased;
+
+            position: relative;
+        }
+
+
+        /* =====================================================
+           ANIMATED BACKGROUND
+        ===================================================== */
+
+        #networkCanvas {
+
+            position: absolute;
+
+            top: 0;
+            left: 0;
+
+            width: 100%;
+            height: 100%;
+
+            z-index: 0;
+
+            pointer-events: none;
+
+            opacity: 1;
+        }
+
+
+        .background-overlay {
+
+            position: absolute;
+
+            top: 0;
+            left: 0;
+
+            width: 100%;
+            height: 100%;
+
+            z-index: 1;
+
+            pointer-events: none;
+
+            background:
+
+                radial-gradient(circle at 15% 20%,
+                    rgba(37, 99, 235, 0.18),
+                    transparent 32%),
+
+                radial-gradient(circle at 85% 25%,
+                    rgba(124, 58, 237, 0.22),
+                    transparent 34%),
+
+                radial-gradient(circle at 50% 90%,
+                    rgba(14, 165, 233, 0.10),
+                    transparent 35%);
+        }
+
+
+        /* =====================================================
+           PAGE
+        ===================================================== */
+
+        .page {
+
+            position: relative;
+
+            z-index: 2;
+
+            width: 100%;
+
+            max-width: 980px;
+
+            margin: 0 auto;
+
+            padding: 48px 20px 35px;
+        }
+
+
+        /* =====================================================
+           HERO
+        ===================================================== */
+
+        .hero {
+
+            text-align: center;
+
+            margin-bottom: 34px;
+        }
+
+
+        .brand-badge {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            padding: 8px 15px;
+
+            border-radius: 999px;
+
+            background:
+                rgba(248, 250, 252, 0.95);
+
+            border: 1px solid rgba(147, 197, 253, 0.7);
+
+            color: #2563eb;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            margin-bottom: 17px;
+
+            box-shadow:
+                0 8px 25px rgba(0, 0, 0, 0.20);
+        }
+
+
+        .pulse-dot {
+
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #22c55e;
+
+            animation:
+                pulse 2s infinite;
+        }
+
+
+        @keyframes pulse {
+
+            0% {
+
+                box-shadow:
+                    0 0 0 0 rgba(34, 197, 94, 0.55);
+            }
+
+            70% {
+
+                box-shadow:
+                    0 0 0 8px rgba(34, 197, 94, 0);
+            }
+
+            100% {
+
+                box-shadow:
+                    0 0 0 0 rgba(34, 197, 94, 0);
+            }
+        }
+
+
+        /* =====================================================
+           HERO TITLE
+        ===================================================== */
+
+        .hero h1 {
+
+            font-size: 42px;
+
+            line-height: 1.12;
+
+            letter-spacing: -1.3px;
+
+            font-weight: 800;
+
+            margin-bottom: 13px;
+
+            color: #f8fafc;
+
+            text-shadow:
+                0 4px 25px rgba(0, 0, 0, 0.25);
+        }
+
+
+        .hero h1 span {
+
+            background:
+
+                linear-gradient(90deg,
+                    #22d3ee,
+                    #60a5fa,
+                    #818cf8,
+                    #a78bfa,
+                    #38bdf8,
+                    #22d3ee);
+
+            background-size: 300% auto;
+
+            color: transparent;
+
+            background-clip: text;
+
+            -webkit-background-clip: text;
+
+            animation:
+                titleGradient 5s linear infinite;
+        }
+
+
+        @keyframes titleGradient {
+
+            0% {
+                background-position: 0% center;
+            }
+
+            100% {
+                background-position: 300% center;
+            }
+        }
+
+
+        .hero p {
+
+            max-width: 680px;
+
+            margin: 0 auto;
+
+            color: #cbd5e1;
+
+            font-size: 15px;
+
+            line-height: 1.7;
+
+            text-shadow:
+                0 2px 10px rgba(0, 0, 0, 0.25);
+        }
+
+
+        /* =====================================================
+           ANALYZER WRAPPER
+        ===================================================== */
+
+        .analyzer-wrapper {
+
+            position: relative;
+
+            padding: 1px;
+
+            border-radius: 21px;
+
+            background:
+
+                linear-gradient(135deg,
+                    rgba(96, 165, 250, 0.75),
+                    rgba(129, 140, 248, 0.40),
+                    rgba(56, 189, 248, 0.65));
+
+            box-shadow:
+
+                0 25px 70px rgba(0, 0, 0, 0.35),
+
+                0 0 45px rgba(37, 99, 235, 0.14);
+        }
+
+
+        /* =====================================================
+           ANALYZER CARD
+        ===================================================== */
+
+        .analyzer-card {
+
+            background:
+
+                linear-gradient(135deg,
+                    rgba(15, 23, 42, 0.92),
+                    rgba(20, 32, 65, 0.84));
+
+            backdrop-filter: blur(20px);
+
+            -webkit-backdrop-filter: blur(20px);
+
+            border-radius: 20px;
+
+            padding: 32px;
+
+            border:
+                1px solid rgba(148, 163, 184, 0.18);
+
+            box-shadow:
+
+                inset 0 1px 0 rgba(255, 255, 255, 0.07);
+        }
+
+
+        .card-heading {
+
+            margin-bottom: 27px;
+        }
+
+
+        .card-heading h2 {
+
+            font-size: 21px;
+
+            font-weight: 750;
+
+            margin-bottom: 5px;
+
+            color: #f8fafc;
+        }
+
+
+        .card-heading p {
+
+            color: #94a3b8;
+
+            font-size: 13px;
+        }
+
+
+        /* =====================================================
+           FORM
+        ===================================================== */
+
+        .form-group {
+
+            margin-bottom: 24px;
+        }
+
+
+        label {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            margin-bottom: 9px;
+
+            font-size: 14px;
+
+            font-weight: 700;
+
+            color: #e2e8f0;
+        }
+
+
+        .optional {
+
+            font-size: 11px;
+
+            font-weight: 500;
+
+            color: #64748b;
+
+            background: #e2e8f0;
+
+            padding: 3px 7px;
+
+            border-radius: 999px;
+        }
+
+
+        /* =====================================================
+           INPUTS
+        ===================================================== */
+
+        /* =====================================================
+        DARK GLASS FORM INPUTS
+        ===================================================== */
+
+        select,
+        textarea {
+
+            width: 100%;
+
+            border: 1px solid rgba(96, 165, 250, 0.28);
+
+            background:
+                rgba(15, 23, 42, 0.55);
+
+            color: #e2e8f0;
+
+            outline: none;
+
+            backdrop-filter: blur(10px);
+
+            -webkit-backdrop-filter: blur(10px);
+
+            transition:
+                border-color 0.25s ease,
+                box-shadow 0.25s ease,
+                background 0.25s ease;
+        }
+
+
+        /* Target role dropdown */
+
+        select {
+
+            padding: 13px 14px;
+
+            border-radius: 10px;
+
+            font-size: 14px;
+
+            cursor: pointer;
+
+            color: #e2e8f0;
+
+        }
+
+
+        /* Dropdown options */
+
+        select option {
+
+            background: #172554;
+
+            color: #f8fafc;
+        }
+
+
+        /* Job description */
+
+        textarea {
+
+            min-height: 170px;
+
+            padding: 14px;
+
+            border-radius: 10px;
+
+            font-family: inherit;
+
+            font-size: 14px;
+
+            line-height: 1.6;
+
+            resize: vertical;
+
+            color: #e2e8f0;
+
+        }
+
+
+        /* Focus effect */
+
+        select:focus,
+        textarea:focus {
+
+            border-color: #3b82f6;
+
+            background:
+                rgba(15, 23, 42, 0.72);
+
+            box-shadow:
+                0 0 0 3px rgba(59, 130, 246, 0.16),
+                0 0 20px rgba(37, 99, 235, 0.12);
+        }
+
+
+        /* Placeholder */
+
+        textarea::placeholder {
+
+            color: #94a3b8;
+
+        }
+
+
+        /* Dropdown arrow / text readability */
+
+        select {
+
+            appearance: auto;
+        }
+
+
+        .helper-text {
+
+            margin-top: 7px;
+
+            color: #94a3b8;
+
+            font-size: 12px;
+
+            line-height: 1.5;
+        }
+
+
+        /* =====================================================
+           UPLOAD BOX
+        ===================================================== */
+
+        .upload-box {
+
+            border:
+                2px dashed rgba(96, 165, 250, 0.65);
+
+            border-radius: 14px;
+
+            padding: 28px 20px;
+
+            text-align: center;
+
+            background:
+                rgba(15, 23, 42, 0.45);
+
+            transition:
+                border-color 0.2s ease,
+                background 0.2s ease,
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+
+        .upload-box:hover {
+
+            border-color: #60a5fa;
+
+            background:
+                rgba(30, 41, 75, 0.65);
+
+            transform:
+                translateY(-2px);
+
+            box-shadow:
+                0 12px 30px rgba(0, 0, 0, 0.18);
+        }
+
+
+        .upload-icon {
+
+            width: 50px;
+            height: 50px;
+
+            margin: 0 auto 12px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 13px;
+
+            background:
+                rgba(59, 130, 246, 0.16);
+
+            border:
+                1px solid rgba(96, 165, 250, 0.25);
+
+            font-size: 22px;
+
+            animation:
+                uploadFloat 3s ease-in-out infinite;
+        }
+
+
+        @keyframes uploadFloat {
+
+            0%,
+            100% {
+
+                transform:
+                    translateY(0);
+            }
+
+            50% {
+
+                transform:
+                    translateY(-5px);
+            }
+        }
+
+
+        .upload-title {
+
+            font-size: 14px;
+
+            font-weight: 700;
+
+            margin-bottom: 4px;
+
+            color: #f8fafc;
+        }
+
+
+        .upload-subtitle {
+
+            color: #94a3b8;
+
+            font-size: 12px;
+
+            margin-bottom: 14px;
+        }
+
+
+        input[type="file"] {
+
+            display: block;
+
+            width: 100%;
+
+            max-width: 390px;
+
+            margin: 0 auto;
+
+            font-size: 12px;
+
+            color: #cbd5e1;
+        }
+
+
+        input[type="file"]::file-selector-button {
+
+            border:
+                1px solid #bfdbfe;
+
+            background: white;
+
+            color: #2563eb;
+
+            padding: 7px 12px;
+
+            border-radius: 8px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            margin-right: 8px;
+        }
+
+
+        /* =====================================================
+           ANALYZE BUTTON
+        ===================================================== */
+
+        .analyze-button {
+
+            position: relative;
+
+            width: 100%;
+
+            padding: 14px 20px;
+
+            border: none;
+
+            border-radius: 11px;
+
+            background:
+
+                linear-gradient(110deg,
+                    #2563eb,
+                    #4f46e5,
+                    #7c3aed,
+                    #0891b2,
+                    #2563eb);
+
+            background-size: 300% auto;
+
+            color: white;
+
+            font-size: 15px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+
+            box-shadow:
+
+                0 8px 22px rgba(37, 99, 235, 0.30);
+
+            overflow: hidden;
+
+            animation:
+                buttonGradient 5s linear infinite;
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+
+        @keyframes buttonGradient {
+
+            0% {
+                background-position: 0% center;
+            }
+
+            100% {
+                background-position: 300% center;
+            }
+        }
+
+
+        /* Shine effect */
+
+        .analyze-button::after {
+
+            content: "";
+
+            position: absolute;
+
+            top: 0;
+
+            left: -100%;
+
+            width: 55%;
+
+            height: 100%;
+
+            background:
+
+                linear-gradient(90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.35),
+                    transparent);
+
+            transform:
+                skewX(-20deg);
+
+            animation:
+                buttonShine 3.5s ease-in-out infinite;
+        }
+
+
+        @keyframes buttonShine {
+
+            0% {
+                left: -100%;
+            }
+
+            55% {
+                left: -100%;
+            }
+
+            75% {
+                left: 130%;
+            }
+
+            100% {
+                left: 130%;
+            }
+        }
+
+
+        .analyze-button:hover {
+
+            transform:
+                translateY(-2px);
+
+            box-shadow:
+
+                0 12px 30px rgba(37, 99, 235, 0.45);
+        }
+
+
+        .analyze-button:active {
+
+            transform:
+                translateY(0);
+        }
+
+
+        /* =====================================================
+           FEATURES
+        ===================================================== */
+
+        .features {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 12px;
+
+            margin-top: 20px;
+        }
+
+
+        .feature {
+
+            padding: 15px;
+
+            border:
+                1px solid rgba(148, 163, 184, 0.18);
+
+            border-radius: 12px;
+
+            background:
+                rgba(15, 23, 42, 0.58);
+
+            backdrop-filter:
+                blur(12px);
+
+            -webkit-backdrop-filter:
+                blur(12px);
+
+            text-align: center;
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+
+        .feature:hover {
+
+            transform:
+                translateY(-3px);
+
+            border-color:
+                rgba(96, 165, 250, 0.35);
+
+            box-shadow:
+                0 10px 25px rgba(0, 0, 0, 0.20);
+        }
+
+
+        .feature-icon {
+
+            font-size: 19px;
+
+            margin-bottom: 5px;
+        }
+
+
+        .feature-title {
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            color: #e2e8f0;
+        }
+
+
+        .feature-text {
+
+            font-size: 11px;
+
+            color: #94a3b8;
+
+            margin-top: 2px;
+        }
+
+
+        /* =====================================================
+           PRIVACY NOTE
+        ===================================================== */
+
+        .privacy-note {
+
+            text-align: center;
+
+            margin-top: 18px;
+
+            font-size: 11px;
+
+            color: #94a3b8;
+        }
+
+
+        /* =====================================================
+           MOBILE
+        ===================================================== */
+
+        @media (max-width: 700px) {
+
+            .page {
+
+                padding:
+                    32px 14px 25px;
+            }
+
+
+            .hero h1 {
+
+                font-size: 32px;
+            }
+
+
+            .hero p {
+
+                font-size: 14px;
+            }
+
+
+            .analyzer-card {
+
+                padding: 23px;
+            }
+
+
+            .features {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+        }
+
+
+        @media (max-width: 450px) {
+
+            .hero h1 {
+
+                font-size: 28px;
+            }
+
+
+            .analyzer-card {
+
+                padding: 18px;
+            }
+
+
+            .features {
+
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+        /* =====================================================
+           REDUCED MOTION
+        ===================================================== */
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+
+                animation-duration:
+                    0.01ms !important;
+
+                animation-iteration-count:
+                    1 !important;
+
+                scroll-behavior:
+                    auto !important;
+            }
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         ANIMATED BACKGROUND
+    ===================================================== -->
+
+    <canvas id="networkCanvas"></canvas>
+
+    <div class="background-overlay"></div>
+
+
+    <!-- =====================================================
+         MAIN PAGE
+    ===================================================== -->
+
+    <main class="page">
+
+
+        <!-- =================================================
+             HERO
+        ================================================= -->
+
+        <header class="hero">
+
+            <div class="brand-badge">
+
+                <span class="pulse-dot"></span>
+
+                🤖 AI-Powered Resume Analysis
+
+            </div>
+
+
+            <h1>
+
+                Smart
+                <span>AI Resume Analyzer</span>
+
+            </h1>
+
+
+            <p>
+
+                Understand how your resume performs before you apply.
+                Get resume quality scoring, ATS compatibility,
+                Job Description matching, semantic analysis,
+                and actionable improvement suggestions.
+
+            </p>
+
+        </header>
+
+
+        <!-- =================================================
+             ANALYZER
+        ================================================= -->
+
+        <section class="analyzer-wrapper">
+
+            <div class="analyzer-card">
+
+
+                <div class="card-heading">
+
+                    <h2>
+                        Analyze Your Resume
+                    </h2>
+
+                    <p>
+                        Provide your target role, optional job description,
+                        and resume to generate your analysis report.
+                    </p>
+
+                </div>
+
+
+                <form action="/upload" method="POST" enctype="multipart/form-data">
+
+
+                    <!-- TARGET ROLE -->
+
+                    <div class="form-group">
+
+                        <label for="role">
+
+                            🎯 Target Job Role
+
+                        </label>
+
+
+                        <select id="role" name="role" required>
+
+                            <option value="">
+                                Select your target role
+                            </option>
+
+                            <option value="AI Engineer">
+                                AI Engineer
+                            </option>
+
+                            <option value="Machine Learning Engineer">
+                                Machine Learning Engineer
+                            </option>
+
+                            <option value="Data Scientist">
+                                Data Scientist
+                            </option>
+
+                            <option value="Software Developer">
+                                Software Developer
+                            </option>
+
+                            <option value="Data Analyst">
+                                Data Analyst
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- JOB DESCRIPTION -->
+
+                    <div class="form-group">
+
+                        <label for="job_description">
+
+                            📋 Job Description
+
+                            <span class="optional">
+                                Optional
+                            </span>
+
+                        </label>
+
+
+                        <textarea id="job_description" name="job_description" placeholder="Paste the complete job description here...
+
+Example:
+• Required technical skills
+• Responsibilities
+• Qualifications
+• Preferred technologies
+• Experience requirements"></textarea>
+
+
+                        <p class="helper-text">
+
+                            Adding a Job Description enables direct keyword
+                            matching and AI-powered semantic comparison
+                            against the role.
+
+                        </p>
+
+                    </div>
+
+
+                    <!-- RESUME -->
+
+                    <div class="form-group">
+
+                        <label for="resume">
+
+                            📄 Resume
+
+                        </label>
+
+
+                        <div class="upload-box">
+
+                            <div class="upload-icon">
+                                📄
+                            </div>
+
+
+                            <div class="upload-title">
+                                Upload your resume
+                            </div>
+
+
+                            <div class="upload-subtitle">
+                                PDF or DOCX files supported
+                            </div>
+
+
+                            <input type="file" id="resume" name="resume" accept=".pdf,.docx" required>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ANALYZE BUTTON -->
+
+                    <button type="submit" class="analyze-button">
+
+                        🚀 Analyze My Resume
+
+                    </button>
+
+
+                </form>
+
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             FEATURES
+        ================================================= -->
+
+        <section class="features">
+
+
+            <div class="feature">
+
+                <div class="feature-icon">
+                    📊
+                </div>
+
+                <div class="feature-title">
+                    Resume Quality
+                </div>
+
+                <div class="feature-text">
+                    Structure & content
+                </div>
+
+            </div>
+
+
+            <div class="feature">
+
+                <div class="feature-icon">
+                    🎯
+                </div>
+
+                <div class="feature-title">
+                    ATS Analysis
+                </div>
+
+                <div class="feature-text">
+                    Role compatibility
+                </div>
+
+            </div>
+
+
+            <div class="feature">
+
+                <div class="feature-icon">
+                    📋
+                </div>
+
+                <div class="feature-title">
+                    JD Matching
+                </div>
+
+                <div class="feature-text">
+                    Requirement coverage
+                </div>
+
+            </div>
+
+
+            <div class="feature">
+
+                <div class="feature-icon">
+                    🤖
+                </div>
+
+                <div class="feature-title">
+                    AI Semantics
+                </div>
+
+                <div class="feature-text">
+                    Contextual relevance
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+        <p class="privacy-note">
+
+            Supports PDF and DOCX resumes •
+            Analysis is generated from the uploaded resume
+            and provided job description
+
+        </p>
+
+
+    </main>
+
+
+    <!-- =====================================================
+         SINGLE NEURAL NETWORK ANIMATION
+         IMPORTANT: Only ONE animation script
+    ====================================================== -->
+
+    <script>
+
+        const canvas =
+            document.getElementById("networkCanvas");
+
+        const ctx =
+            canvas.getContext("2d");
+
+
+        let particles = [];
+
+        let animationId;
+
+        let canvasWidth = 0;
+
+        let canvasHeight = 0;
+
+
+        /* =================================================
+           RESIZE CANVAS
+        ================================================= */
+
+        function resizeCanvas() {
+
+            canvasWidth =
+                document.documentElement.scrollWidth;
+
+            canvasHeight =
+                document.documentElement.scrollHeight;
+
+
+            const dpr =
+                Math.min(
+                    window.devicePixelRatio || 1,
+                    2
+                );
+
+
+            canvas.width =
+                canvasWidth * dpr;
+
+            canvas.height =
+                canvasHeight * dpr;
+
+
+            canvas.style.width =
+                canvasWidth + "px";
+
+            canvas.style.height =
+                canvasHeight + "px";
+
+
+            ctx.setTransform(
+                dpr,
+                0,
+                0,
+                dpr,
+                0,
+                0
+            );
+        }
+
+
+        /* =================================================
+           PARTICLE COUNT
+        ================================================= */
+
+        function getParticleCount() {
+
+            if (window.innerWidth < 600) {
+
+                return 45;
+            }
+
+
+            if (window.innerWidth < 1000) {
+
+                return 70;
+            }
+
+
+            return 100;
+        }
+
+
+        /* =================================================
+           CREATE PARTICLES
+        ================================================= */
+
+        function createParticles() {
+
+            particles = [];
+
+
+            const count =
+                getParticleCount();
+
+
+            for (
+                let i = 0;
+                i < count;
+                i++
+            ) {
+
+                particles.push({
+
+                    x:
+                        Math.random()
+                        * canvasWidth,
+
+                    y:
+                        Math.random()
+                        * canvasHeight,
+
+                    vx:
+                        (Math.random() - 0.5)
+                        * 0.35,
+
+                    vy:
+                        (Math.random() - 0.5)
+                        * 0.35,
+
+                    radius:
+                        Math.random() * 2 + 1,
+
+                    pulse:
+                        Math.random()
+                        * Math.PI * 2,
+
+                    pulseSpeed:
+                        0.01
+                        +
+                        Math.random()
+                        * 0.025,
+
+                    opacity:
+                        0.35
+                        +
+                        Math.random()
+                        * 0.4
+                });
+            }
+        }
+
+
+        /* =================================================
+           UPDATE PARTICLES
+        ================================================= */
+
+        function updateParticles() {
+
+            for (
+                const p of particles
+            ) {
+
+                p.x += p.vx;
+
+                p.y += p.vy;
+
+                p.pulse +=
+                    p.pulseSpeed;
+
+
+                /* Horizontal bounce */
+
+                if (
+                    p.x <= 0 ||
+                    p.x >= canvasWidth
+                ) {
+
+                    p.vx *= -1;
+                }
+
+
+                /* Vertical bounce */
+
+                if (
+                    p.y <= 0 ||
+                    p.y >= canvasHeight
+                ) {
+
+                    p.vy *= -1;
+                }
+            }
+        }
+
+
+        /* =================================================
+           DRAW PARTICLES
+        ================================================= */
+
+        function drawParticles() {
+
+            for (
+                const p of particles
+            ) {
+
+                const pulseRadius =
+                    p.radius
+                    +
+                    Math.sin(p.pulse)
+                    * 0.8;
+
+
+                /* Outer glow */
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    p.x,
+                    p.y,
+                    pulseRadius + 7,
+                    0,
+                    Math.PI * 2
+                );
+
+                ctx.fillStyle =
+                    "rgba(56, 189, 248, 0.08)";
+
+                ctx.fill();
+
+
+                /* Main node */
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    p.x,
+                    p.y,
+                    pulseRadius,
+                    0,
+                    Math.PI * 2
+                );
+
+
+                ctx.fillStyle =
+                    `rgba(
+                        147,
+                        197,
+                        253,
+                        ${p.opacity}
+                    )`;
+
+
+                ctx.shadowBlur = 12;
+
+                ctx.shadowColor =
+                    "rgba(56, 189, 248, 0.65)";
+
+
+                ctx.fill();
+
+
+                ctx.shadowBlur = 0;
+            }
+        }
+
+
+        /* =================================================
+           DRAW NETWORK CONNECTIONS
+        ================================================= */
+
+        function drawConnections() {
+
+            const maxDistance = 155;
+
+
+            for (
+                let i = 0;
+                i < particles.length;
+                i++
+            ) {
+
+                for (
+                    let j = i + 1;
+                    j < particles.length;
+                    j++
+                ) {
+
+                    const p1 =
+                        particles[i];
+
+                    const p2 =
+                        particles[j];
+
+
+                    const dx =
+                        p1.x - p2.x;
+
+                    const dy =
+                        p1.y - p2.y;
+
+
+                    const distance =
+                        Math.sqrt(
+                            dx * dx +
+                            dy * dy
+                        );
+
+
+                    if (
+                        distance <
+                        maxDistance
+                    ) {
+
+                        const opacity =
+                            (
+                                1
+                                -
+                                distance /
+                                maxDistance
+                            )
+                            * 0.32;
+
+
+                        ctx.beginPath();
+
+
+                        ctx.moveTo(
+                            p1.x,
+                            p1.y
+                        );
+
+
+                        ctx.lineTo(
+                            p2.x,
+                            p2.y
+                        );
+
+
+                        ctx.strokeStyle =
+                            `rgba(
+                                96,
+                                165,
+                                250,
+                                ${opacity}
+                            )`;
+
+
+                        ctx.lineWidth =
+                            0.8;
+
+
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+
+        /* =================================================
+           ANIMATION LOOP
+        ================================================= */
+
+        function animate() {
+
+            ctx.clearRect(
+                0,
+                0,
+                canvasWidth,
+                canvasHeight
+            );
+
+
+            updateParticles();
+
+            drawConnections();
+
+            drawParticles();
+
+
+            animationId =
+                requestAnimationFrame(
+                    animate
+                );
+        }
+
+
+        /* =================================================
+           INITIALIZE
+        ================================================= */
+
+        function initialize() {
+
+            resizeCanvas();
+
+            createParticles();
+
+            animate();
+        }
+
+
+        /* =================================================
+           WINDOW RESIZE
+        ================================================= */
+
+        window.addEventListener(
+            "resize",
+            function () {
+
+                cancelAnimationFrame(
+                    animationId
+                );
+
+
+                resizeCanvas();
+
+                createParticles();
+
+                animate();
+            }
+        );
+
+
+        /* =================================================
+           KEEP CANVAS HEIGHT IN SYNC
+        ================================================= */
+
+        if (
+            "ResizeObserver"
+            in window
+        ) {
+
+            const observer =
+                new ResizeObserver(
+                    function () {
+
+                        const newHeight =
+                            document
+                                .documentElement
+                                .scrollHeight;
+
+
+                        if (
+                            newHeight !==
+                            canvasHeight
+                        ) {
+
+                            resizeCanvas();
+                        }
+                    }
+                );
+
+
+            observer.observe(
+                document.body
+            );
+        }
+
+
+        /* START */
+
+        initialize();
+
+    </script>
+
+
+</body>
+
+</html>

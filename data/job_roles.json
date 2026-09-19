@@ -1,0 +1,72 @@
+{
+    "AI Engineer": {
+        "skills": [
+            "Python",
+            "Machine Learning",
+            "Deep Learning",
+            "TensorFlow",
+            "PyTorch",
+            "Natural Language Processing",
+            "Computer Vision",
+            "Data Structures",
+            "Git",
+            "Docker"
+        ]
+    },
+    "Machine Learning Engineer": {
+        "skills": [
+            "Python",
+            "Machine Learning",
+            "Deep Learning",
+            "Scikit-learn",
+            "TensorFlow",
+            "PyTorch",
+            "Pandas",
+            "NumPy",
+            "Data Structures",
+            "Git"
+        ]
+    },
+    "Data Scientist": {
+        "skills": [
+            "Python",
+            "SQL",
+            "Machine Learning",
+            "Statistics",
+            "Pandas",
+            "NumPy",
+            "Data Visualization",
+            "Scikit-learn",
+            "Power BI",
+            "Tableau"
+        ]
+    },
+    "Software Developer": {
+        "skills": [
+            "Python",
+            "Java",
+            "C++",
+            "Data Structures",
+            "Algorithms",
+            "Git",
+            "SQL",
+            "Object Oriented Programming",
+            "REST API",
+            "Docker"
+        ]
+    },
+    "Data Analyst": {
+        "skills": [
+            "Python",
+            "SQL",
+            "Excel",
+            "Pandas",
+            "Data Visualization",
+            "Power BI",
+            "Tableau",
+            "Statistics",
+            "NumPy",
+            "Data Cleaning"
+        ]
+    }
+}
