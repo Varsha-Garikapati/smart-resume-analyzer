@@ -348,13 +348,37 @@ def extract_contact_info(text):
     # --------------------------------------------------
     # PHONE
     # --------------------------------------------------
+    # Supports:
+    # +91 98765 43210
+    # +91-9876543210
+    # +1 415 555 2671
+    # +44 20 7946 0958
+    # +61-412-345-678
+    # 98765 43210
+    #
+    # First extract phone-like candidates, then keep only
+    # candidates containing 8-15 digits.
 
-    phone_pattern = r"(?:\+91[-\s]?)?[6-9]\d{9}"
-
-    phones = re.findall(
-        phone_pattern,
+    phone_candidates = re.findall(
+        r"(?<!\w)\+?\d[\d\s().-]{7,20}\d(?!\w)",
         text
     )
+
+    phones = []
+
+    for phone in phone_candidates:
+
+        # Count only actual digits
+        digit_count = len(re.sub(r"\D", "", phone))
+
+        if 8 <= digit_count <= 15:
+            # Skip simple 4‑digit years (e.g., 2022)
+            if digit_count == 4:
+                continue
+            # Clean excessive whitespace
+            phone = re.sub(r"\s+", " ", phone).strip()
+            if phone not in phones:
+                phones.append(phone)
 
     # --------------------------------------------------
     # LINKEDIN
