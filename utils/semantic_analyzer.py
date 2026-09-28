@@ -1,11 +1,15 @@
 from sentence_transformers import SentenceTransformer
-from sentence_transformers.util import cos_sim
+import numpy as np
+import torch
 import re
+
+# Keep CPU inference lightweight on small deployment instances.
+torch.set_num_threads(1)
 
 
 MODEL_NAME = "all-MiniLM-L6-v2"
 
-model = SentenceTransformer(MODEL_NAME)
+model = SentenceTransformer(MODEL_NAME, device="cpu")
 
 
 def get_section_text(section_content, section_name):
@@ -36,20 +40,16 @@ def calculate_similarity(text1, text2):
         return 0
 
     embeddings = model.encode(
-        [
-            text1,
-            text2
-        ],
-        convert_to_tensor=True
+        [text1, text2],
+        batch_size=1,
+        convert_to_numpy=True,
+        normalize_embeddings=True,
+        show_progress_bar=False
     )
 
-    similarity = cos_sim(
-        embeddings[0],
-        embeddings[1]
-    )
-
+    # With normalized embeddings, cosine similarity is simply the dot product.
     return float(
-        similarity.item()
+        np.dot(embeddings[0], embeddings[1])
     )
 
 
@@ -257,22 +257,29 @@ def find_semantic_insights(
 
     resume_embeddings = model.encode(
         resume_chunks,
-        convert_to_tensor=True
+        batch_size=4,
+        convert_to_numpy=True,
+        normalize_embeddings=True,
+        show_progress_bar=False
     )
 
     jd_embeddings = model.encode(
         jd_chunks,
-        convert_to_tensor=True
+        batch_size=4,
+        convert_to_numpy=True,
+        normalize_embeddings=True,
+        show_progress_bar=False
     )
 
     # -----------------------------
     # Compare JD requirements
     # with resume evidence
     # -----------------------------
-
-    similarity_matrix = cos_sim(
+    # Both embedding sets are normalized, so matrix multiplication
+    # gives cosine similarities without creating large PyTorch tensors.
+    similarity_matrix = np.matmul(
         jd_embeddings,
-        resume_embeddings
+        resume_embeddings.T
     )
 
     strong_matches = []
@@ -285,11 +292,11 @@ def find_semantic_insights(
         similarities = similarity_matrix[i]
 
         best_score = float(
-            similarities.max().item()
+            similarities.max()
         )
 
         best_index = int(
-            similarities.argmax().item()
+            similarities.argmax()
         )
 
         best_resume_chunk = (
